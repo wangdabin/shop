@@ -1,0 +1,188 @@
+
+--任务分解情况
+--1.得到对应点击的action
+  1.1 统计对应商品的点击数
+  select goodid,count(*)
+  from action
+  where action.type = 1
+  group by goodid
+--2.得到对应的购买的action
+--2.1 关联对应的购品表,得到对应的goodId
+ select action.actionid,purchase.goodid
+ from
+ (select actionid
+  from action
+  where action.type = 0) action
+left outer join purchase
+on actionid = purchase.orderid
+  2.2 统计对应的商品id对应的购买数
+  select goodid,count(*)
+  from (
+  select action.actionid,purchase.goodid goodid
+   from
+   (select actionid
+    from action
+    where action.type = 0) action
+  left outer join purchase
+  on actionid = purchase.orderid) a
+  group by a.goodid;
+//3.关联两部分数据
+
+select 
+case 
+when mid_action.goodid  is not null then mid_action.goodid
+else mid_action1.goodid
+end as goodid,
+case 
+when mid_action.click_sum is not null then mid_action.click_sum
+else 0
+end as click_sum,
+case 
+when mid_action1.buy_sum is not null then mid_action1.buy_sum
+else 0
+end as buy_sum
+from
+(select goodid,count(*) click_sum
+  from action
+  where action.type = 1
+  group by goodid) mid_action
+full outer join
+(select goodid,count(*) buy_sum
+  from (
+  select action.actionid,purchase.goodid goodid
+   from
+   (select actionid
+    from action
+    where action.type = 0) action
+  left outer join purchase
+  on actionid = purchase.orderid) mid_action2
+  group by mid_action2.goodid) mid_action1
+ on mid_action.goodid = mid_action1.goodid;
+//4.分别与对应的商品表产品表进行关联得到对应的信息,搞定
+
+select goodid,ptid,ywbm,ctype,click_sum,buy_sum
+from 
+(
+select 
+case 
+when mid_action.goodid  is not null then mid_action.goodid
+else mid_action1.goodid
+end as goodid,
+case 
+when mid_action.click_sum is not null then mid_action.click_sum
+else 0
+end as click_sum,
+case 
+when mid_action1.buy_sum is not null then mid_action1.buy_sum
+else 0
+end as buy_sum
+from
+(select goodid,count(*) click_sum
+  from action
+  where action.type = 1 AND action.createtime > AND action.createtime <
+  group by goodid) mid_action
+join
+(select goodid,count(*) buy_sum
+  from (
+  select action.actionid,purchase.goodid goodid
+   from
+   (select actionid
+    from action
+    where action.type = 0 AND action.createtime > AND action.createtime < ) action
+  left outer join purchase
+  on actionid = purchase.orderid) mid_action2
+  group by mid_action2.goodid) mid_action1
+ on mid_action.goodid = mid_action1.goodid) s_num
+ left outer join shop
+ on s_num.goodid = shop.id
+ left outer join product
+ on shop.pid = product.id;
+
+
+
+
+
+
+
+
+
+
+#首先得到type类型不为0的数据
+select userid,goodid,sum(type)
+from action
+where action.type <> 0
+group by userid,goodid
+
+#得到用户所购买的数据
+
+select userid,goodid,sum(score)
+  from (
+  select action.actionid,action.userid,purchase.goodid goodid,5 score
+   from
+   (select actionid,userid
+    from action
+    where action.type = 0) action
+  left outer join purchase
+  on actionid = purchase.orderid
+  ) mid_action2
+  group by mid_action2.userid,mid_action2.goodid
+
+#将对应的用户的统计起来
+
+select
+case
+when aaa.userid  is not null then aaa.userid
+else bbb.userid
+end as userid,
+case
+when aaa.goodid  is not null then aaa.goodid
+else bbb.goodid
+end as goodid,
+case
+when (aaa.userid  is not null AND bbb.userid is not null)  then aaa.score + bbb.score
+when (aaa.userid  is not null)  then aaa.score
+else bbb.score
+end as score
+from
+(select userid,goodid,sum(type) score
+from action
+where action.type <> 0
+group by userid,goodid) aaa
+full outer join
+(select userid,goodid,sum(score) score
+   from (
+   select action.actionid,action.userid,purchase.goodid goodid,5 score
+    from
+    (select actionid,userid
+     from action
+     where action.type = 0) action
+   left outer join purchase
+   on actionid = purchase.orderid
+   ) mid_action2
+   group by mid_action2.userid,mid_action2.goodid) bbb
+on (aaa.userid =bbb.userid AND aaa.goodid = bbb.goodid)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+

@@ -1,0 +1,2 @@
+#execute p_recsysdmd_total_day.sh at five o'clock in the morning
+0 5 * * * sh /home/wangdabin/bin/p_recsysdmd_total_day.sh >> /home/wangdabin/logs/p_recsysdmd_total_$(date +"\%Y\%m\%d").log 2>&1 &
