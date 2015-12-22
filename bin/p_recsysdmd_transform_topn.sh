@@ -21,10 +21,10 @@ THIS_DIR=`dirname "$THIS"`
 BIGDATA_HOME=`cd "$THIS_DIR/.." ; pwd`
 
 
-JAR_PATH="${BIGDATA_HOME}/lib/sbtspark_2.10-1.0.jar"
+JAR_PATH="${BIGDATA_HOME}/lib/sbtSpark-assembly-1.0.jar"
 
 
-MYSQL_JAR="${BIGDATA_HOME}/lib/mysql-connector-java-5.1.7-bin.jar"
+#MYSQL_JAR="${BIGDATA_HOME}/lib/mysql-connector-java-5.1.7-bin.jar"
 
 SPARK_HOME="/usr/lib/spark/spark-1.4.1-bin-hadoop2.4/bin"
 SPARK_MASTER_URL="spark://cidadm01:7077"
@@ -52,4 +52,4 @@ mysql -h${HOSTNAME}  -P${PORT}  -u${USERNAME} -p${PASSWORD} ${DBNAME} -e"${creat
 
 #分析
 #echo "开始分析数据"
-$SPARK_HOME/spark-submit --master $SPARK_MASTER_URL --executor-memory 5G --total-executor-cores 24 --class sql.TopNExportMysql --jars $MYSQL_JAR $JAR_PATH
+$SPARK_HOME/spark-submit --master $SPARK_MASTER_URL --executor-memory 5G --total-executor-cores 24 --class sql.TopNExportMysql  $JAR_PATH

@@ -40,7 +40,3 @@ hive -e "
 use $v_pkg;
 $v_sql
 "
-
-
-
-

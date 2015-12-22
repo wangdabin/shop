@@ -54,20 +54,16 @@ import org.apache.spark.{SparkConf, SparkContext}
 object BoughtGood {
 
   def main(args: Array[String]) {
-    //    if (args.length < 1) {
-    //      System.err.println("Usage: <recommend nums> 推荐个数 eg: 20")
-    //      System.exit(1)
-    //    }
     val sparkConf = new SparkConf().setAppName("BoughtGood").set("spark.default.parallelism", "24")
     val sc = new SparkContext(sparkConf)
     val hiveContext = new HiveContext(sc)
     val dbName = "recsysdmd"
     import hiveContext.sql
-    val bought_also_bought_sql = "select mid_2.product_code, mid3.bought_also_bought_code, mid3.platform_type, mid3.support, mid3.confidence, mid3.correlation from ( select product_id,        mid_1.bought_also_bought_code bought_also_bought_code,        mid_1.platform_type platform_type,        support,        confidence,        correlation from dm_recsys_model.bought_also_bought left outer join (SELECT mid_purchase.productid productid,        mid_purchase.code bought_also_bought_code,        platform.type platform_type FROM   (SELECT distinct productid,code,platformid    FROM purchase    LEFT OUTER JOIN goods ON purchase.goodsid = goods.id) mid_purchase LEFT OUTER JOIN platform ON mid_purchase.platformid = platform.id) mid_1 on bought_also_bought.also_bought_product_id = mid_1.productid ) mid3 join (SELECT mid_purchase.productid productid,        mid_purchase.code product_code,        platform.type platform_type FROM   (SELECT distinct productid,code,platformid    FROM purchase    LEFT OUTER JOIN goods ON purchase.goodsid = goods.id    ) mid_purchase LEFT OUTER JOIN platform ON mid_purchase.platformid = platform.id) mid_2 on (mid3.product_id = mid_2.productid and mid3.platform_type = mid_2.platform_type)"
+//    val bought_also_bought_sql = "select mid_2.product_code, mid3.bought_also_bought_code, mid3.platform_type, mid3.support, mid3.confidence, mid3.correlation from ( select product_id, mid_1.bought_also_bought_code bought_also_bought_code,        mid_1.platform_type platform_type,        support,        confidence,        correlation from dm_recsys_model.bought_also_bought left outer join (SELECT mid_purchase.productid productid,        mid_purchase.code bought_also_bought_code,        platform.type platform_type FROM   (SELECT distinct productid,code,platformid    FROM purchase    LEFT OUTER JOIN goods ON purchase.goodsid = goods.id) mid_purchase LEFT OUTER JOIN platform ON mid_purchase.platformid = platform.id) mid_1 on bought_also_bought.also_bought_product_id = mid_1.productid ) mid3 join (SELECT mid_purchase.productid productid,        mid_purchase.code product_code,        platform.type platform_type FROM   (SELECT distinct productid,code,platformid    FROM purchase    LEFT OUTER JOIN goods ON purchase.goodsid = goods.id    ) mid_purchase LEFT OUTER JOIN platform ON mid_purchase.platformid = platform.id) mid_2 on (mid3.product_id = mid_2.productid and mid3.platform_type = mid_2.platform_type)"
+    val bought_also_bought_sql = "SELECT mid_2.product_code,        mid3.bought_also_bought_code,        mid3.platform_type,        mid3.support,        mid3.confidence,        mid3.correlation FROM   (SELECT product_id,           mid_1.bought_also_bought_code bought_also_bought_code,           mid_1.platform_type platform_type,           support,           confidence,           correlation    FROM dm_recsys_model.bought_also_bought    LEFT OUTER JOIN    (SELECT DISTINCT      productid,                          code bought_also_bought_code,                          platform.type platform_type       FROM goods       LEFT OUTER JOIN platform       ON goods.platformid = platform.id     ) mid_1     ON bought_also_bought.also_bought_product_id = mid_1.productid) mid3 JOIN   (SELECT DISTINCT      productid,                         code product_code,                         platform.type platform_type      FROM goods      LEFT OUTER JOIN platform      ON goods.platformid = platform.id) mid_2 ON (mid3.product_id = mid_2.productid AND mid3.platform_type = mid_2.platform_type)"
     println("Result of " + bought_also_bought_sql + ":")
     sql("use " + dbName)
     val boughtAlsoBoughtResult = sql(bought_also_bought_sql)
-
     val mysql_result = boughtAlsoBoughtResult.map(x =>{
       val product_code = x.get(0).toString
       val bought_also_bought_code = x.get(1).toString
@@ -77,7 +73,8 @@ object BoughtGood {
       val correlation = x.get(5).toString.toDouble
       (product_code,bought_also_bought_code,platform_type,support,confidence,correlation)
     })
-    overwriteTextFile("popular/product",mysql_result)
+    overwriteTextFile("popular/shop",mysql_result)
+    sc.stop()
   }
   def deletePath(sc: SparkContext, path: String): Unit = {
     val hdfs = org.apache.hadoop.fs.FileSystem.get(sc.hadoopConfiguration)

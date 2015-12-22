@@ -31,7 +31,7 @@ filter_days=30
 times=1
 v_pkg=dm_recsys_model
 v_logfile=${BIGDATA_HOME}/logs/weight_sum_${startTime}.log
-v_jar=${BIGDATA_HOME}/lib/sbtspark_2.10-1.0.jar
+v_jar=${BIGDATA_HOME}/lib/sbtSpark-assembly-1.0.jar
 v_sql="
 INSERT overwrite TABLE score_weight_sum
 select user_id,product_id,round(sum(weight_score)/sum(weight),2) score
