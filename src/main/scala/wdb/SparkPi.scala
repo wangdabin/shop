@@ -29,16 +29,33 @@ object SparkPi{
     val sc = new SparkContext(conf)
 
 
-    val data1 = sc.parallelize(Array((("A","B"),"2"),(("A","B"),"5"),(("A","B"),"1")))
-    println(data1.partitions.size)
+    val sell_out_mid = List(
 
-    val data2 = sc.parallelize(Array((("A","B"),"2"),(("A","B"),"5"),(("A","B"),"1")))
-    println(data2.partitions.size)
-    val data3 = data1.union(data2)
-    println(data3.partitions.size)
+      ("Guanwang","11"),
+      ("EPP","22")
+    )
+    val sell_out_mid1 = sc.parallelize(sell_out_mid)
 
-    val data4 = data3.groupByKey()
-    data4.foreachPartition(println)
+    val relationship = List(
+      ("Guanwang","11"),
+      ("Guanwang","12"),
+      ("Guanwang","13"),
+      ("Guanwang","14"),
+      ("Think","21"),
+      ("Think","22"),
+      ("Think","23"),
+      ("Think","24"),
+      ("EPP","31"),
+      ("EPP","32"),
+      ("EPP","33"),
+      ("EPP","34")
+    )
+    val relationshipRdd = sc.parallelize(relationship)
+    val result = sell_out_mid1.leftOuterJoin(relationshipRdd).map(x =>{
+      val goods_code = x._2._1
+      val platform_type = x._2._2.get
+      (goods_code,platform_type)
+    }).collect().foreach(println)
 
 
 

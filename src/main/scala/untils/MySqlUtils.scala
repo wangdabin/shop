@@ -198,6 +198,37 @@ object MySqlUtils {
     }
   }
 
+
+  def saveRddForGoodsNew(iterator: Iterator[(String,Int,Int,Int,String,Long)]): Unit = {
+    if(iterator.isEmpty){
+      return
+    }
+    var conn: Connection = null
+    var ps: PreparedStatement = null
+    val saveOrUpdate_sql = "insert into goods(id,platform_type,goods_code,product_type,business,create_time) values (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE platform_type=VALUES(platform_type), goods_code=VALUES(goods_code), product_type=VALUES(product_type), business=VALUES(business),create_time=VALUES(create_time)"
+    try {
+      conn = ConnectionFactoryNew.connect()
+      iterator.foreach(data => {
+        ps = conn.prepareStatement(saveOrUpdate_sql)
+        ps.setString(1, data._1)
+        ps.setInt(2, data._2)
+        ps.setInt(3,data._3)
+        ps.setInt(4,data._4)
+        ps.setString(5,data._5)
+        ps.setLong(6,data._6)
+        ps.executeUpdate()
+      })
+      //      ps.executeBatch() //执行批处理
+    } finally {
+      if (ps != null) {
+        ps.close()
+      }
+      if (conn != null) {
+        conn.close()
+      }
+    }
+  }
+
   def deleteDataForGoods(createTime:Long): Unit = {
     var conn: Connection = null
     var ps: PreparedStatement = null
@@ -217,6 +248,27 @@ object MySqlUtils {
       }
     }
   }
+
+  def deleteDataForGoodsNew(createTime:Long): Unit = {
+    var conn: Connection = null
+    var ps: PreparedStatement = null
+    val delete_sql = "delete from goods where create_time < ?"
+    try {
+      conn = ConnectionFactoryNew.connect()
+      ps = conn.prepareStatement(delete_sql)
+      ps.setLong(1, createTime)
+      val result  = ps.executeUpdate() //执行删除
+      println("共删除旧数据:" + result)
+    } finally {
+      if (ps != null) {
+        ps.close()
+      }
+      if (conn != null) {
+        conn.close()
+      }
+    }
+  }
+
 
   def saveRddForTransformTopN(iterator: Iterator[(String,Int,Int,Int,Double,Long)]): Unit = {
     if(iterator.isEmpty){

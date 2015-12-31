@@ -12,3 +12,11 @@ correlation DOUBLE  comment '相关度'
 COMMENT '保存产品的买了又买的数据'
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 STORED AS TEXTFILE;"
+
+
+
+
+
+
+
+
